@@ -1,5 +1,5 @@
-# Use node as the base image
-FROM node:20-slim AS build
+# Step 1: Build the Vite React app
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
@@ -9,25 +9,21 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code
+# Copy source code and build
 COPY . .
-
-# Build the app
 RUN npm run build
 
-# Use a lightweight server to serve the static files
-FROM node:20-slim
+# Step 2: Serve the app with Nginx
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy the build output to replace the default nginx contents.
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Install 'serve' package
-RUN npm install -g serve
+# Copy the custom nginx configuration
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-# Copy build files from the previous stage
-COPY --from=build /app/dist ./dist
-
-# Expose port 8080 (Cloud Run default)
+# Cloud Run sets the PORT environment variable. Nginx alpine image with templates 
+# will automatically substitute ${PORT} in our template when starting up.
 EXPOSE 8080
 
-# Serve the build folder on port 8080
-CMD ["serve", "-s", "dist", "-l", "8080"]
+CMD ["nginx", "-g", "daemon off;"]
