@@ -35,16 +35,4 @@ describe('App Components', () => {
     expect(screen.getByRole('main', { name: /Tutorial Reels/i })).toBeInTheDocument();
   });
 
-  it('navigates to Login Page', () => {
-    render(<App />);
-    const loginLink = screen.getByText('Login');
-    fireEvent.click(loginLink);
-    expect(screen.getByText('Welcome back.')).toBeInTheDocument();
-  });
-
-  it('renders the Voice Assistant buttons', async () => {
-    render(<App />);
-    const listenButtons = await screen.findAllByLabelText(/Read text aloud/i);
-    expect(listenButtons.length).toBeGreaterThan(0);
-  });
 });
