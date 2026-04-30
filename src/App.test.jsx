@@ -42,9 +42,9 @@ describe('App Components', () => {
     expect(screen.getByText('Welcome back.')).toBeInTheDocument();
   });
 
-  it('renders the Voice Assistant buttons', () => {
+  it('renders the Voice Assistant buttons', async () => {
     render(<App />);
-    const listenButtons = screen.getAllByLabelText('Read text aloud');
+    const listenButtons = await screen.findAllByLabelText(/Read text aloud/i);
     expect(listenButtons.length).toBeGreaterThan(0);
   });
 });
