@@ -27,14 +27,24 @@ describe('App Components', () => {
     }
   });
 
-  it('allows interaction with checklist items', () => {
+  it('navigates to Reels Page', () => {
     render(<App />);
-    const checklistLink = screen.getAllByText('Checklist').find(el => el.tagName === 'A' || el.tagName === 'BUTTON');
-    if (checklistLink) {
-      fireEvent.click(checklistLink);
-      const firstItem = screen.getByText('Voter ID Card');
-      fireEvent.click(firstItem);
-      // Further assertions could check for the 'checked' class, but let's keep it simple for now to pass.
-    }
+    const tutorialsLink = screen.getByText('Tutorials');
+    fireEvent.click(tutorialsLink);
+    // Since ReelsPage uses a header with Tutorials text
+    expect(screen.getByRole('main', { name: /Tutorial Reels/i })).toBeInTheDocument();
+  });
+
+  it('navigates to Login Page', () => {
+    render(<App />);
+    const loginLink = screen.getByText('Login');
+    fireEvent.click(loginLink);
+    expect(screen.getByText('Welcome back.')).toBeInTheDocument();
+  });
+
+  it('renders the Voice Assistant buttons', () => {
+    render(<App />);
+    const listenButtons = screen.getAllByLabelText('Read text aloud');
+    expect(listenButtons.length).toBeGreaterThan(0);
   });
 });
