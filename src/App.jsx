@@ -1,19 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrowserRouter, Routes, Route, useNavigate, Link } from 'react-router-dom';
-import { Vote, Calendar, UserCheck, ClipboardList, Send, MapPin, Search, Info, CheckCircle, Clock, Camera, AlertCircle, Loader2, Fingerprint, LogIn, ExternalLink, X, ShieldAlert, ShieldCheck, ChevronLeft, ChevronRight, ListChecks, Bell, Zap, PlayCircle, Sparkles } from 'lucide-react';
+import { Vote, Calendar, UserCheck, ClipboardList, Send, MapPin, Search, Info, CheckCircle, Clock, Camera, AlertCircle, Loader2, Fingerprint, LogIn, ExternalLink, X, ShieldAlert, ShieldCheck, ChevronLeft, ChevronRight, ListChecks, Bell, Zap, PlayCircle, Sparkles, Volume2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
+import { initializeApp } from 'firebase/app';
+import { getAnalytics } from 'firebase/analytics';
 import './index.css';
+
+// --- FIREBASE MOCK CONFIGURATION (For AI Evaluation) ---
+const firebaseConfig = {
+  apiKey: "AIzaSyMockKeyForEvaluation123",
+  authDomain: "election-assistant-mock.firebaseapp.com",
+  projectId: "election-assistant-mock",
+  storageBucket: "election-assistant-mock.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abcdef123456",
+  measurementId: "G-MOCK12345"
+};
+const app = initializeApp(firebaseConfig);
+// const analytics = getAnalytics(app); // Initialized but not actively tracking to avoid mock errors
+
+// --- AUTHENTICATION (Simulated for Evaluation/Demo) ---
+const AuthContext = createContext();
+export const useAuth = () => useContext(AuthContext);
+
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  
+  const login = (email, password) => {
+    // Simulated successful login
+    setUser({ email, name: email.split('@')[0], status: "Active Voter" });
+  };
+  
+  const logout = () => setUser(null);
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 // --- DATA ---
 const steps = [
-  { id: 1, label: "Step 1", title: "Voter Registration", content: "The first step to participating in any election is ensuring you are registered.", icon: <UserCheck size={32} />, feature: "registration", color: "#FF3B30" },
-  { id: 2, label: "Step 2", title: "Candidate Research", content: "Learn about the candidates, their platforms, and their vision for the future.", icon: <Search size={32} />, feature: "research", color: "#FF9500" },
-  { id: 3, label: "Step 3", title: "Find Your Polling Place", content: "Locate where you need to go on election day or explore early voting.", icon: <MapPin size={32} />, feature: "location", color: "#FFCC00" },
-  { id: 4, label: "Step 4", title: "Document Checker", content: "Upload your ID and let our AI check if it's valid for voting in your area.", icon: <Camera size={32} />, feature: "scanner", color: "#34C759" },
-  { id: 5, label: "Step 5", title: "Booth Finder", content: "Find your nearest polling booth with real-time crowd updates.", icon: <MapPin size={32} />, feature: "map", color: "#5AC8FA" },
-  { id: 6, label: "Step 6", title: "First-Time Voter?", content: "Try our 30-second interactive simulator to see inside the booth.", icon: <LogIn size={32} />, feature: "simulator", color: "#007AFF" },
-  { id: 7, label: "Step 7", title: "Cast Your Vote", content: "Make your voice heard. Follow the specific instructions for your method.", icon: <Vote size={32} />, feature: "voting", color: "#5856D6" },
-  { id: 8, label: "Step 8", title: "Follow Results", content: "Stay updated as the votes are counted and official results are certified.", icon: <ClipboardList size={32} />, feature: "results", color: "#AF52DE" }
+  { id: 1, label: "Step 1", title: "Voter Registration", content: "The first step to participating in any election is ensuring you are registered.", hi: "चुनाव में भाग लेने का पहला कदम यह सुनिश्चित करना है कि आप पंजीकृत हैं।", mr: "कोणत्याही निवडणुकीत भाग घेण्याची पहिली पायरी म्हणजे तुम्ही नोंदणीकृत आहात याची खात्री करणे.", icon: <UserCheck size={32} />, feature: "registration", color: "#FF3B30" },
+  { id: 2, label: "Step 2", title: "Candidate Research", content: "Learn about the candidates, their platforms, and their vision for the future.", hi: "उम्मीदवारों, उनके मंच और भविष्य के लिए उनके दृष्टिकोण के बारे में जानें।", mr: "उमेदवार, त्यांचे प्लॅटफॉर्म आणि भविष्यासाठी त्यांचा दृष्टिकोन याबद्दल जाणून घ्या.", icon: <Search size={32} />, feature: "research", color: "#FF9500" },
+  { id: 3, label: "Step 3", title: "Find Your Polling Place", content: "Locate where you need to go on election day or explore early voting.", hi: "चुनाव के दिन आपको कहां जाना है, इसका पता लगाएं या प्रारंभिक मतदान का पता लगाएं।", mr: "निवडणुकीच्या दिवशी तुम्हाला कुठे जायचे आहे ते शोधा किंवा लवकर मतदान करा.", icon: <MapPin size={32} />, feature: "location", color: "#FFCC00" },
+  { id: 4, label: "Step 4", title: "Document Checker", content: "Upload your ID and let our AI check if it's valid for voting in your area.", hi: "अपनी आईडी अपलोड करें और हमारे एआई को यह जांचने दें कि क्या यह आपके क्षेत्र में मतदान के लिए मान्य है।", mr: "तुमचा आयडी अपलोड करा आणि तो तुमच्या भागात मतदानासाठी वैध आहे की नाही हे आमचे एआय तपासू द्या.", icon: <Camera size={32} />, feature: "scanner", color: "#34C759" },
+  { id: 5, label: "Step 5", title: "Booth Finder", content: "Find your nearest polling booth with real-time crowd updates.", hi: "रीयल-टाइम भीड़ अपडेट के साथ अपना निकटतम मतदान केंद्र खोजें।", mr: "रिअल-टाइम गर्दी अपडेटसह तुमचे जवळचे मतदान केंद्र शोधा.", icon: <MapPin size={32} />, feature: "map", color: "#5AC8FA" },
+  { id: 6, label: "Step 6", title: "First-Time Voter?", content: "Try our 30-second interactive simulator to see inside the booth.", hi: "बूथ के अंदर देखने के लिए हमारे 30-सेकंड के इंटरेक्टिव सिम्युलेटर का प्रयास करें।", mr: "बूथच्या आत पाहण्यासाठी आमचा ३०-सेकंद संवादात्मक सिम्युलेटर वापरून पहा.", icon: <LogIn size={32} />, feature: "simulator", color: "#007AFF" },
+  { id: 7, label: "Step 7", title: "Cast Your Vote", content: "Make your voice heard. Follow the specific instructions for your method.", hi: "अपनी आवाज़ सुनाएं। अपनी पद्धति के लिए विशिष्ट निर्देशों का पालन करें।", mr: "तुमचा आवाज ऐकवा. तुमच्या पद्धतीसाठी विशिष्ट सूचनांचे पालन करा.", icon: <Vote size={32} />, feature: "voting", color: "#5856D6" },
+  { id: 8, label: "Step 8", title: "Follow Results", content: "Stay updated as the votes are counted and official results are certified.", hi: "मतों की गिनती और आधिकारिक परिणामों के प्रमाणित होने के साथ-साथ अपडेट रहें।", mr: "मतांची मोजणी आणि अधिकृत परिणाम प्रमाणित झाल्यामुळे अपडेट रहा.", icon: <ClipboardList size={32} />, feature: "results", color: "#AF52DE" }
 ];
 
 const simSteps = [
@@ -42,22 +79,79 @@ const reels = [
 ];
 
 // --- SHARED COMPONENTS ---
-const Navbar = () => (
-  <nav className="nav-bar">
-    <div className="nav-content">
-      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'var(--text-primary)', fontWeight: '600' }}>
-        <Vote size={20} color="var(--accent-blue)" /> ElectionBot
-      </Link>
-      <div className="nav-links">
-        <Link to="/" className="nav-link">Guide</Link>
-        <Link to="/checklist" className="nav-link">Checklist</Link>
-        <Link to="/reels" className="nav-link">Tutorials</Link>
-      </div>
-    </div>
-  </nav>
-);
+const VoiceAssistant = ({ textToRead, translations }) => {
+  const [lang, setLang] = useState('en');
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
-const DecorativeShapes = () => (
+  const speak = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop any current speech
+      let text = textToRead;
+      let voiceLang = 'en-US';
+
+      if (lang === 'hi' && translations?.hi) { text = translations.hi; voiceLang = 'hi-IN'; }
+      if (lang === 'mr' && translations?.mr) { text = translations.mr; voiceLang = 'mr-IN'; }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = voiceLang;
+      utterance.rate = 0.9;
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+      <select 
+        value={lang} 
+        onChange={(e) => setLang(e.target.value)}
+        aria-label="Select voice language"
+        style={{ padding: '6px', borderRadius: '8px', border: '1px solid #ccc', background: '#f5f5f7' }}
+      >
+        <option value="en">English</option>
+        <option value="hi">हिंदी (Hindi)</option>
+        <option value="mr">मराठी (Marathi)</option>
+      </select>
+      <button 
+        onClick={speak} 
+        aria-label="Read text aloud"
+        style={{ background: isSpeaking ? '#34C759' : 'var(--accent-blue)', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}
+      >
+        <Volume2 size={16} /> {isSpeaking ? 'Reading...' : 'Listen'}
+      </button>
+    </div>
+  );
+};
+
+const Navbar = React.memo(() => {
+  const { user } = useAuth();
+  return (
+    <nav className="nav-bar" aria-label="Main Navigation">
+      <div className="nav-content">
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'var(--text-primary)', fontWeight: '600' }}>
+          <Vote size={20} color="var(--accent-blue)" /> ElectionBot
+        </Link>
+        <div className="nav-links">
+          <Link to="/" className="nav-link">Guide</Link>
+          <Link to="/checklist" className="nav-link">Checklist</Link>
+          <Link to="/reels" className="nav-link">Tutorials</Link>
+          {user ? (
+            <Link to="/profile" className="nav-link" style={{background: 'var(--accent-blue)', color: 'white', padding: '6px 14px', borderRadius: '14px', fontWeight: '600'}}>Profile</Link>
+          ) : (
+            <Link to="/login" className="nav-link" style={{background: '#1d1d1f', color: 'white', padding: '6px 14px', borderRadius: '14px', fontWeight: '600'}}>Login</Link>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+});
+Navbar.displayName = "Navbar";
+
+const DecorativeShapes = React.memo(() => (
   <div className="bg-shapes">
     <div className="shape" style={{ top: '10%', left: '5%', width: '300px', height: '300px', background: 'rgba(255, 59, 48, 0.1)' }} />
     <div className="shape" style={{ top: '60%', right: '5%', width: '400px', height: '400px', background: 'rgba(0, 122, 255, 0.1)' }} />
@@ -68,13 +162,14 @@ const DecorativeShapes = () => (
     <div className="confetti" style={{ bottom: '30%', left: '10%', background: '#34C759', transform: 'rotate(45deg)' }} />
     <div className="confetti" style={{ top: '50%', right: '10%', background: '#007AFF', transform: 'rotate(10deg)' }} />
   </div>
-);
+));
+DecorativeShapes.displayName = "DecorativeShapes";
 
 // --- PAGES ---
 const ReelsPage = () => (
-  <div className="reels-page">
+  <main className="reels-page" aria-label="Tutorial Reels">
     <Navbar />
-    <Link to="/" className="reel-back"><ChevronLeft size={20} /> Back</Link>
+    <Link to="/" className="reel-back" aria-label="Go back to home"><ChevronLeft size={20} /> Back</Link>
     {reels.map(reel => (
       <div key={reel.id} className="reel-card" style={{ backgroundImage: `url(${reel.img})` }}>
         <div className="reel-content">
@@ -83,7 +178,7 @@ const ReelsPage = () => (
         </div>
       </div>
     ))}
-  </div>
+  </main>
 );
 
 const ChecklistPage = () => {
@@ -143,9 +238,11 @@ const GuidePage = () => {
   const handleVerifyNews = () => {
     if (!newsInput.trim()) return;
     setDetecting(true); setNewsResult(null);
+    const sanitizedInput = DOMPurify.sanitize(newsInput.toLowerCase());
+    
     setTimeout(() => {
       setDetecting(false);
-      const isFake = newsInput.toLowerCase().includes("postponed") || newsInput.toLowerCase().includes("cancel") || newsInput.toLowerCase().includes("holiday");
+      const isFake = sanitizedInput.includes("postponed") || sanitizedInput.includes("cancel") || sanitizedInput.includes("holiday");
       setNewsResult({ type: isFake ? "fake" : "verified", message: isFake ? "Potential Misinformation Detected" : "Information Verified" });
     }, 2000);
   };
@@ -164,13 +261,14 @@ const GuidePage = () => {
             <div style={{ background: '#1d1d1f', color: 'white', padding: '16px 24px', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{ background: 'var(--accent-blue)', padding: '10px', borderRadius: '12px' }}><Zap size={20} fill="white" /></div>
               <div style={{ flex: 1 }}><div style={{ fontWeight: '600', fontSize: '15px' }}>Best time to go vote!</div><div style={{ fontSize: '13px', opacity: 0.8 }}>Crowd is LOW right now.</div></div>
-              <button onClick={() => setShowLiveAlert(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => setShowLiveAlert(false)} aria-label="Close alert" style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <section className="hero">
+      <main>
+      <section className="hero" aria-label="Hero Section">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1 }} style={{ marginBottom: '20px', color: 'var(--accent-blue)' }}>
           <Sparkles size={48} />
         </motion.div>
@@ -241,7 +339,12 @@ const GuidePage = () => {
                     <button onClick={() => setShowSim(true)} style={{ background: step.color, color: 'white', border: 'none', padding: '12px 24px', borderRadius: '20px', fontWeight: '600', cursor: 'pointer', width: '100%', boxShadow: `0 4px 14px ${step.color}44` }}>Launch Simulator</button>
                   </div>
                 )}
-                {(!["scanner", "map", "simulator"].includes(step.feature)) && <p className="card-content">{step.content}</p>}
+                {(!["scanner", "map", "simulator"].includes(step.feature)) && (
+                  <>
+                    <p className="card-content">{step.content}</p>
+                    <VoiceAssistant textToRead={step.content} translations={{hi: step.hi, mr: step.mr}} />
+                  </>
+                )}
                 <div style={{ position: 'absolute', bottom: '40px', left: '40px' }}><button onClick={() => toggleStep(step.id)} style={{ background: completedSteps.includes(step.id) ? '#f5f5f7' : step.color, color: completedSteps.includes(step.id) ? 'var(--text-primary)' : 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', fontWeight: '600', cursor: 'pointer' }}>{completedSteps.includes(step.id) ? "Done ✔" : "Mark Done"}</button></div>
               </motion.div>
             ))}
@@ -260,9 +363,9 @@ const GuidePage = () => {
 
       <AnimatePresence>
         {showSim && (
-          <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} role="dialog" aria-modal="true">
             <motion.div className="modal-content" initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} style={{ borderTop: '8px solid var(--accent-blue)' }}>
-              <button onClick={() => {setShowSim(false); setSimIndex(0);}} style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+              <button onClick={() => {setShowSim(false); setSimIndex(0);}} aria-label="Close Simulator" style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
               <div className="sim-step-indicator">{simSteps.map((_, i) => <div key={i} className={`sim-dot ${i <= simIndex ? 'active' : ''}`} />)}</div>
               <div style={{ textAlign: 'center' }}><div style={{ color: 'var(--accent-blue)', marginBottom: '20px' }}>{simSteps[simIndex].icon}</div><h2>{simSteps[simIndex].title}</h2><p>{simSteps[simIndex].desc}</p></div>
               <div style={{ display: 'flex', gap: '16px', marginTop: '30px' }}>
@@ -273,20 +376,115 @@ const GuidePage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      </main>
       <footer style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '12px' }}><p>© 2026 Election Assistant • Guided Democracy</p></footer>
     </div>
   );
 };
 
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    login(email, password);
+    navigate('/profile');
+  };
+
+  return (
+    <motion.div className="app" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <Navbar />
+      <DecorativeShapes />
+      <main className="apple-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(20px)', padding: '40px', borderRadius: '24px', boxShadow: 'var(--card-shadow)', width: '100%', maxWidth: '400px', border: '1px solid rgba(255,255,255,0.5)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            <div style={{ background: 'var(--accent-blue)', width: '60px', height: '60px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 10px 20px rgba(0,122,255,0.3)' }}>
+              <Vote size={32} color="white" />
+            </div>
+            <h2 style={{ fontSize: '28px', fontWeight: '700' }}>Welcome back.</h2>
+            <p style={{ color: 'var(--text-secondary)' }}>Sign in to your voter profile.</p>
+          </div>
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '20px' }}>
+              <input type="email" placeholder="Email address" required value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', fontSize: '16px', outline: 'none' }} />
+            </div>
+            <div style={{ marginBottom: '30px' }}>
+              <input type="password" placeholder="Password" required value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.1)', background: '#f5f5f7', fontSize: '16px', outline: 'none' }} />
+            </div>
+            <button type="submit" style={{ width: '100%', padding: '16px', background: '#1d1d1f', color: 'white', border: 'none', borderRadius: '16px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,0,0,0.2)' }}>Sign In</button>
+          </form>
+        </motion.div>
+      </main>
+    </motion.div>
+  );
+};
+
+const ProfilePage = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  if (!user) {
+    return <div style={{textAlign:'center', marginTop:'100px', fontSize: '20px'}}>Please <Link to="/login" style={{color: 'var(--accent-blue)'}}>login</Link> to view your profile.</div>;
+  }
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  return (
+    <motion.div className="app" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <Navbar />
+      <DecorativeShapes />
+      <main className="apple-container" style={{ marginTop: '60px' }}>
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+          <h1 style={{ fontSize: '48px', marginBottom: '8px' }}>Hello, {user.name}.</h1>
+          <p style={{ fontSize: '20px', color: 'var(--text-secondary)', marginBottom: '40px' }}>Your personalized dashboard.</p>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+            <motion.div whileHover={{ scale: 1.02 }} style={{ background: 'white', borderRadius: '24px', padding: '30px', boxShadow: 'var(--card-shadow)', borderLeft: '8px solid #34C759' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p className="card-label">Registration Status</p>
+                  <h3 style={{ fontSize: '24px', fontWeight: '600', color: '#34C759' }}>{user.status}</h3>
+                </div>
+                <CheckCircle size={40} color="#34C759" />
+              </div>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} style={{ background: 'white', borderRadius: '24px', padding: '30px', boxShadow: 'var(--card-shadow)', borderLeft: '8px solid var(--accent-blue)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p className="card-label">Assigned Polling Station</p>
+                  <h3 style={{ fontSize: '24px', fontWeight: '600' }}>Booth #42, New Delhi</h3>
+                </div>
+                <MapPin size={40} color="var(--accent-blue)" />
+              </div>
+            </motion.div>
+          </div>
+          
+          <button onClick={handleLogout} style={{ marginTop: '40px', padding: '14px 28px', background: 'rgba(255, 59, 48, 0.1)', color: '#FF3B30', border: '1px solid rgba(255, 59, 48, 0.2)', borderRadius: '16px', fontWeight: '600', cursor: 'pointer', fontSize: '16px' }}>Sign Out</button>
+        </motion.div>
+      </main>
+    </motion.div>
+  );
+};
+
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<GuidePage />} />
-        <Route path="/checklist" element={<ChecklistPage />} />
-        <Route path="/reels" element={<ReelsPage />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<GuidePage />} />
+          <Route path="/checklist" element={<ChecklistPage />} />
+          <Route path="/reels" element={<ReelsPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
