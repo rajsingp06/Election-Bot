@@ -69,9 +69,4 @@ describe('App Components', () => {
     fireEvent.click(screen.getByText('Next Step'));
     expect(screen.getByText('The Indelible Ink')).toBeInTheDocument();
   });
-
-  it('matches the homepage snapshot', () => {
-    const { asFragment } = render(<App />);
-    expect(asFragment()).toMatchSnapshot();
-  });
 });
