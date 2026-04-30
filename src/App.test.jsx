@@ -31,8 +31,47 @@ describe('App Components', () => {
     render(<App />);
     const tutorialsLink = screen.getByText('Tutorials');
     fireEvent.click(tutorialsLink);
-    // Since ReelsPage uses a header with Tutorials text
     expect(screen.getByRole('main', { name: /Tutorial Reels/i })).toBeInTheDocument();
   });
 
+  it('updates progress when a step is marked done', () => {
+    render(<App />);
+    const markDoneButtons = screen.getAllByText('Mark Done');
+    fireEvent.click(markDoneButtons[0]);
+    const progressBar = screen.getByLabelText(/Completion progress/i);
+    expect(progressBar).toBeInTheDocument();
+  });
+
+  it('opens and closes the simulator', () => {
+    render(<App />);
+    const launchButton = screen.getByText('Launch Simulator');
+    fireEvent.click(launchButton);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    const closeButton = screen.getByLabelText('Close Simulator');
+    fireEvent.click(closeButton);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('handles the ID scan process', async () => {
+    render(<App />);
+    const scanButton = screen.getByLabelText(/Start scanning/i);
+    fireEvent.click(scanButton);
+    expect(screen.getByLabelText(/Scanning in progress/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Verified by AI/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+  });
+
+  it('navigates through simulator steps', () => {
+    render(<App />);
+    fireEvent.click(screen.getByText('Launch Simulator'));
+    expect(screen.getByText('Arrival & ID Check')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Next Step'));
+    expect(screen.getByText('The Indelible Ink')).toBeInTheDocument();
+  });
+
+  it('matches the homepage snapshot', () => {
+    const { asFragment } = render(<App />);
+    expect(asFragment()).toMatchSnapshot();
+  });
 });

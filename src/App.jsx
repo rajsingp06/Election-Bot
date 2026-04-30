@@ -122,23 +122,34 @@ const ChecklistPage = () => {
   const [checked, setChecked] = useState([]);
   const toggle = (id) => setChecked(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   return (
-    <motion.div className="checklist-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <div className="checklist-page">
       <Navbar />
       <DecorativeShapes />
-      <div className="apple-container" style={{ maxWidth: '800px', marginTop: '60px' }}>
-        <Link to="/" className="back-link"><ChevronLeft size={20} /> Back to Guide</Link>
-        <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>What to Carry.</h1>
-        <p style={{ fontSize: '21px', color: 'var(--text-secondary)', marginBottom: '40px' }}>Your personalized checklist.</p>
-        <div style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(10px)', borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
-          {checklistItems.map(item => (
-            <div key={item.id} className="checklist-item" onClick={() => toggle(item.id)}>
-              <div className={`check-circle ${checked.includes(item.id) ? 'checked' : ''}`}>{checked.includes(item.id) && <CheckCircle size={20} color="white" />}</div>
-              <div style={{ fontWeight: '600', fontSize: '17px' }}>{item.title}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
+      <main id="main-content" className="apple-container" style={{ maxWidth: '800px', marginTop: '60px' }}>
+        <Link to="/" className="back-link" aria-label="Return to the main election guide"><ChevronLeft size={20} /> Back to Guide</Link>
+        <header>
+          <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>What to Carry.</h1>
+          <p style={{ fontSize: '21px', color: 'var(--text-secondary)', marginBottom: '40px' }}>Your personalized checklist for election day.</p>
+        </header>
+        <section aria-label="Interactive checklist">
+          <div style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(10px)', borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+            {checklistItems.map(item => (
+              <button 
+                key={item.id} 
+                className="checklist-item" 
+                onClick={() => toggle(item.id)}
+                aria-pressed={checked.includes(item.id)}
+                aria-label={`Mark ${item.title} as ${checked.includes(item.id) ? 'incomplete' : 'complete'}`}
+                style={{ width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer' }}
+              >
+                <div className={`check-circle ${checked.includes(item.id) ? 'checked' : ''}`}>{checked.includes(item.id) && <CheckCircle size={20} color="white" />}</div>
+                <div style={{ fontWeight: '600', fontSize: '17px' }}>{item.title}</div>
+              </button>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 };
 
@@ -195,13 +206,14 @@ const GuidePage = () => {
 
   return (
     <div className="app">
+      <a href="#main-content" className="skip-link" style={{ position: 'absolute', top: '-40px', left: 0, background: 'var(--accent-blue)', color: 'white', padding: '8px', zIndex: 2000 }}>Skip to content</a>
       <Navbar />
       <DecorativeShapes />
-      <div className="progress-bar" style={{ top: '52px' }}><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
+      <div className="progress-bar" style={{ top: '52px' }} role="progressbar" aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100" aria-label="Completion progress"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
       
       <AnimatePresence>
         {showLiveAlert && (
-          <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 72, opacity: 1 }} exit={{ y: -100, opacity: 0 }} style={{ position: 'fixed', top: '0', left: '50%', transform: 'translateX(-50%)', zIndex: 1001, width: 'calc(100% - 40px)', maxWidth: '500px' }}>
+          <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 72, opacity: 1 }} exit={{ y: -100, opacity: 0 }} style={{ position: 'fixed', top: '0', left: '50%', transform: 'translateX(-50%)', zIndex: 1001, width: 'calc(100% - 40px)', maxWidth: '500px' }} role="alert">
             <div style={{ background: '#1d1d1f', color: 'white', padding: '16px 24px', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{ background: 'var(--accent-blue)', padding: '10px', borderRadius: '12px' }}><Zap size={20} fill="white" /></div>
               <div style={{ flex: 1 }}><div style={{ fontWeight: '600', fontSize: '15px' }}>Best time to go vote!</div><div style={{ fontSize: '13px', opacity: 0.8 }}>Crowd is LOW right now.</div></div>
@@ -211,12 +223,12 @@ const GuidePage = () => {
         )}
       </AnimatePresence>
 
-      <main>
-      <section className="hero" aria-label="Hero Section">
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1 }} style={{ marginBottom: '20px', color: 'var(--accent-blue)' }}>
+      <main id="main-content">
+      <section className="hero" aria-labelledby="hero-title">
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1 }} style={{ marginBottom: '20px', color: 'var(--accent-blue)' }} aria-hidden="true">
           <Sparkles size={48} />
         </motion.div>
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+        <motion.h1 id="hero-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           Understand your vote. <br />
           <span style={{ color: 'var(--accent-blue)' }}>Interactive election assistant.</span>
         </motion.h1>
@@ -264,11 +276,11 @@ const GuidePage = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}><div style={{ color: step.color }}>{step.icon}</div>{completedSteps.includes(step.id) && <CheckCircle color="#34C759" fill="#34C759" size={24} />}</div>
                 <div className="card-label" style={{ color: step.color }}>{step.label}</div><h3 className="card-title">{step.title}</h3>
                 {step.feature === "scanner" && (
-                  <div className="scanner-container">
-                    {scanning && <div className="scanner-line" />}
-                    <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400" className="id-preview" alt="ID Mockup" />
-                    {!scanning && !scanResult && <button onClick={handleScan} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', border: 'none', padding: '10px 20px', borderRadius: '15px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>Scan ID</button>}
-                    {scanResult && <div style={{ position: 'absolute', inset: 0, background: 'rgba(52, 199, 89, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><div><CheckCircle size={40} /><p>{scanResult.message}</p></div></div>}
+                  <div className="scanner-container" role="region" aria-live="polite" aria-label="ID scanner results">
+                    {scanning && <div className="scanner-line" aria-label="Scanning in progress..." />}
+                    <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=400" className="id-preview" alt="Placeholder voter identification card" />
+                    {!scanning && !scanResult && <button onClick={handleScan} aria-label={`Start scanning for ${step.title}`} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', border: 'none', padding: '10px 20px', borderRadius: '15px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>Scan ID</button>}
+                    {scanResult && <div style={{ position: 'absolute', inset: 0, background: 'rgba(52, 199, 89, 0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}><div><CheckCircle size={40} aria-hidden="true" /><p>{scanResult.message}</p></div></div>}
                   </div>
                 )}
                 {step.feature === "map" && (
@@ -318,7 +330,9 @@ const GuidePage = () => {
         )}
       </AnimatePresence>
       </main>
-      <footer style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '12px' }}><p>© 2026 Election Assistant • Guided Democracy</p></footer>
+      <footer style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '12px' }} role="contentinfo">
+        <p>© 2026 Election Assistant • Guided Democracy. Built for accessibility.</p>
+      </footer>
     </div>
   );
 };
