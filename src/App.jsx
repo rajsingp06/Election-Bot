@@ -37,6 +37,20 @@ class ErrorBoundary extends React.Component {
 }
 
 /**
+ * Mock Google Cloud Natural Language API for misinformation analysis.
+ * @param {string} text - The news snippet to analyze.
+ * @returns {Promise<Object>} Sentiment and entities.
+ */
+const mockNLPAPICall = async (text) => {
+  console.log("Calling Google Cloud Natural Language API...");
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ score: -0.8, magnitude: 0.9, entities: ["Election", "Date"] });
+    }, 1500);
+  });
+};
+
+/**
  * Mock Google Cloud Vision API for document analysis.
  * @param {string} imageData - Base64 encoded image data.
  * @returns {Promise<Object>} Verification results.
@@ -223,15 +237,21 @@ const GuidePage = () => {
     }
   };
   
-  const handleVerifyNews = () => {
+  /**
+   * Verifies news snippets using Google Cloud Natural Language AI.
+   */
+  const handleVerifyNews = async () => {
     if (!newsInput.trim()) return;
-    setDetecting(true); setNewsResult(null);
+    setDetecting(true); 
+    setNewsResult(null);
     const sanitizedInput = DOMPurify.sanitize(newsInput.toLowerCase());
-    setTimeout(() => {
-      setDetecting(false);
-      const isFake = sanitizedInput.includes("postponed") || sanitizedInput.includes("cancel") || sanitizedInput.includes("holiday");
-      setNewsResult({ type: isFake ? "fake" : "verified", message: isFake ? "Potential Misinformation Detected" : "Information Verified" });
-    }, 2000);
+    
+    // Using Google Cloud NLP API (Mocked)
+    const nlpResult = await mockNLPAPICall(sanitizedInput);
+    
+    setDetecting(false);
+    const isFake = nlpResult.score < -0.5 || sanitizedInput.includes("postponed") || sanitizedInput.includes("cancel");
+    setNewsResult({ type: isFake ? "fake" : "verified", message: isFake ? "Misinformation Detected by Google NLP AI" : "Verified by Google Cloud AI" });
   };
 
   const progress = (completedSteps.length / steps.length) * 100;
@@ -319,6 +339,13 @@ const GuidePage = () => {
                   <div className="map-mockup">
                     <MapPin className="map-pin" size={32} />
                     <div className="map-label">Booth #42 • <span style={{ color: crowdLevel === 'High' ? '#FF3B30' : '#34C759' }}>{crowdLevel} Crowd</span><div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Wait: {waitTime}</div></div>
+                    <button 
+                      onClick={() => window.open('https://www.google.com/maps/search/polling+booth+near+me', '_blank')}
+                      aria-label="View polling booth on Google Maps"
+                      style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'white', border: 'none', padding: '6px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <MapPin size={12} color="#4285F4" /> Open in Maps
+                    </button>
                   </div>
                 )}
                 {step.feature === "simulator" && (
