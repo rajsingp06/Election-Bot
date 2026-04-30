@@ -20,7 +20,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-// --- MOCK GOOGLE CLOUD VISION API ---
+// --- UTILITIES & SECURITY ---
+/**
+ * Simulated Error Boundary to catch UI crashes and prevent info leaks.
+ */
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error) { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return <div style={{ padding: '40px', textAlign: 'center' }}><h1>Something went wrong.</h1><p>The application encountered an error. Please refresh.</p></div>;
+    return this.props.children;
+  }
+}
+
+/**
+ * Mock Google Cloud Vision API for document analysis.
+ * @param {string} imageData - Base64 encoded image data.
+ * @returns {Promise<Object>} Verification results.
+ */
 const mockVisionAPICall = async (imageData) => {
   console.log("Calling Google Cloud Vision API for document analysis...");
   return new Promise((resolve) => {
@@ -181,14 +201,26 @@ const GuidePage = () => {
     return () => clearInterval(interval);
   }, [showLiveAlert]);
 
+  /**
+   * Toggles the completion state of a specific step.
+   * @param {number} id - The ID of the step to toggle.
+   */
   const toggleStep = (id) => setCompletedSteps(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
   
+  /**
+   * Handles the AI-powered ID scanning process.
+   */
   const handleScan = async () => { 
     setScanning(true); 
     setScanResult(null); 
-    const result = await mockVisionAPICall("mock_image_data");
-    setScanning(false); 
-    setScanResult({ status: "success", message: `Valid ${result.label} Detected! (Verified by AI)` }); 
+    try {
+      const result = await mockVisionAPICall("mock_image_data");
+      setScanning(false); 
+      setScanResult({ status: "success", message: `Valid ${result.label} Detected! (Verified by AI)` }); 
+    } catch (error) {
+      setScanning(false);
+      setScanResult({ status: "error", message: "Scan failed. Please try again." });
+    }
   };
   
   const handleVerifyNews = () => {
@@ -339,13 +371,15 @@ const GuidePage = () => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<GuidePage />} />
-        <Route path="/checklist" element={<ChecklistPage />} />
-        <Route path="/reels" element={<ReelsPage />} />
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<GuidePage />} />
+          <Route path="/checklist" element={<ChecklistPage />} />
+          <Route path="/reels" element={<ReelsPage />} />
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
