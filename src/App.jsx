@@ -9,13 +9,13 @@ import './index.css';
 
 // --- FIREBASE MOCK CONFIGURATION (For AI Evaluation) ---
 const firebaseConfig = {
-  apiKey: "AIzaSyMockKeyForEvaluation123",
-  authDomain: "election-assistant-mock.firebaseapp.com",
-  projectId: "election-assistant-mock",
-  storageBucket: "election-assistant-mock.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456",
-  measurementId: "G-MOCK12345"
+  apiKey: "REDACTED_MOCK_KEY",
+  authDomain: "election-assistant-demo.firebaseapp.com",
+  projectId: "election-assistant-demo",
+  storageBucket: "election-assistant-demo.appspot.com",
+  messagingSenderId: "0000000000",
+  appId: "0:0000000000:web:mock123456",
+  measurementId: "G-DEMO12345"
 };
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
@@ -460,13 +460,15 @@ const ProfilePage = () => {
     navigate('/');
   };
 
+  const sanitizedName = DOMPurify.sanitize(user.name);
+
   return (
     <motion.div className="app" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Navbar />
       <DecorativeShapes />
       <main className="apple-container" style={{ marginTop: '60px' }}>
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '8px' }}>Hello, {user.name}.</h1>
+          <h1 style={{ fontSize: '48px', marginBottom: '8px' }}>Hello, {sanitizedName}.</h1>
           <p style={{ fontSize: '20px', color: 'var(--text-secondary)', marginBottom: '40px' }}>Your personalized dashboard.</p>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
